@@ -1,1 +1,0 @@
-This is a project used to learn mysql which contain 50 usual problems.
