@@ -34,23 +34,80 @@ GROUP BY st.s_id HAVING AVG(sc.s_score>=60)
 -- 4、查询平均成绩小于60分的同学的学生编号和学生姓名和平均成绩
         -- (包括有成绩的和无成绩的)
  
-
+SELECT st.s_name, IFNULL(AVG(sc.s_score),0)
+FROM score sc
+RIGHT JOIN student st ON sc.s_id=st.s_id
+GROUP BY st.s_id HAVING IFNULL(AVG(sc.s_score),0)<60
  
+ # 为了找出所有无成绩的同学，要使用右连接
  
 -- 5、查询所有同学的学生编号、学生姓名、选课总数、所有课程的总成绩
+SELECT st.s_id,st.s_name,IFNULL(COUNT(sc.s_score),0),SUM(sc.s_score)
+FROM student st
+LEFT JOIN score sc on st.s_id=sc.s_id
+GROUP BY st.s_id,st.s_name
 
- 
+ # 此处加上IFNULL函数，解决了null的显示问题，将其显示为0
+ # 此处使用左连接而不是内连接是为了查找出所有用户而不是仅仅是重合用户
  
 -- 6、查询"李"姓老师的数量 
+
+SELECT COUNT(te.t_id)
+FROM teacher te
+WHERE te.t_name like "李%"
 
  
 -- 7、查询学过"张三"老师授课的同学的信息 
 
+SELECT st.*
+FROM student stWHERE st.s_id IN(
+	SELECT sc.s_id
+	FROM score sc
+	WHERE sc.c_id IN(
+		SELECT co.c_id
+		FROM course co
+		WHERE co.t_id IN(
+			SELECT te.t_id
+			FROM teacher te
+			WHERE te.t_name="张三"
+			)
+	)
+)
+
+
+
  
 -- 8、查询没学过"张三"老师授课的同学的信息 
+SELECT st.*
+FROM student st
+WHERE st.s_id NOT IN(
+	SELECT sc.s_id
+	FROM score sc
+	WHERE sc.c_id IN(
+		SELECT co.c_id
+		FROM course co
+		WHERE co.t_id IN(
+			SELECT te.t_id
+			FROM teacher te
+			WHERE te.t_name="张三"
+			)
+	)
+)
+
 
 -- 9、查询学过编号为"01"并且也学过编号为"02"的课程的同学的信息
  
+SELECT st.*
+FROM student st
+WHERE st.s_id IN(
+	SELECT sc.s_id
+	FROM score sc
+	WHERE sc.c_id=01 and sc.s_id IN(
+		SELECT sc2.s_id
+		FROM score sc2
+		WHERE sc2.c_id=02 
+	)	
+)
 
  
 -- 10、查询学过编号为"01"但是没有学过编号为"02"的课程的同学的信息
